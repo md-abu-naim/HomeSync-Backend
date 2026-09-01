@@ -5,7 +5,7 @@ model User {
     password        String?
     googleId        String?      @unique
     authProvider    AuthProvider @default(CREDENTIAL)
-    role            UserRole     @default(CUSTOMER)
+    role            Role     @default(CUSTOMER)
     status          UserStatus   @default(ACTIVE)
     isEmailVerified Boolean      @default(false)
 
