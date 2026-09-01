@@ -27,7 +27,7 @@ app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
 
         res.status(httpStatus.OK).json({
             success: true,
-            message: "Zod Validation",
+            message: "Testing ",
             data: {}
         });
     } catch (error) {

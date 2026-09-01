@@ -1,0 +1,39 @@
+enum UserRole {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+}
+
+enum AuthProvider {
+    CREDENTIAL
+    GOOGLE
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  PENDING
+}
+
+enum RequestStatus {
+  PENDING      
+  ASSIGNED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED    
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  BKASH
+  SSLCOMMERZ
+}
