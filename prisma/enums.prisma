@@ -5,28 +5,27 @@ enum UserRole {
 }
 
 enum AuthProvider {
-    CREDENTIAL
-    GOOGLE
+  CREDENTIAL
+  GOOGLE
 }
 
 enum UserStatus {
   ACTIVE
   BLOCKED
-  PENDING
 }
 
 enum RequestStatus {
-  PENDING      
+  PENDING
   ASSIGNED
   ACCEPTED
   IN_PROGRESS
-  COMPLETED    
+  COMPLETED
   CANCELLED
   REJECTED
 }
 
 enum PaymentStatus {
-  PENDING
+  UNPAID
   PAID
   FAILED
   REFUNDED
@@ -36,4 +35,11 @@ enum PaymentMethod {
   STRIPE
   BKASH
   SSLCOMMERZ
+}
+
+
+enum TechnicianStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

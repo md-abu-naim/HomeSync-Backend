@@ -1,0 +1,29 @@
+model User {
+    id              String       @id @default(uuid())
+    name            String
+    email           String       @unique
+    password        String?
+    googleId        String?      @unique
+    authProvider    AuthProvider @default(CREDENTIAL)
+    role            UserRole     @default(CUSTOMER)
+    status          UserStatus   @default(ACTIVE)
+    isEmailVerified Boolean      @default(false)
+
+    isDeleted Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relationships
+    profile           Profile?
+    technicianProfile Technician?
+    serviceRequests   ServiceRequest[]   @relation("CustomerRequests")
+    assignedJobs      ServiceRequest[]   @relation("TechnicianJobs")
+    auditLogs         AuditLog[]
+    reviewsGiven      Review[]           @relation("CustomerReviews")
+    payments          Payment[]
+
+    @@index([email])
+    @@index([role, status])
+    @@map("users")
+}
