@@ -1,0 +1,23 @@
+model Service {
+  id          String   @id @default(uuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  
+  title       String
+  description String   @db.Text
+  basePrice   Float
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+
+  // Soft Delete & Timestamps
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  requests    ServiceRequest[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("services")
+}
