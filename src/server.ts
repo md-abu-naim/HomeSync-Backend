@@ -1,6 +1,7 @@
 import app from "./app";
 import config from "./app/config";
 import { prisma } from "./app/lib/prisma";
+import { seedTesterAdmin, seedTesterCustomer, seedTesterTechnician } from "./app/utils/seed";
 
 const PORT = config.port;
 
@@ -15,6 +16,9 @@ const main = async () => {
         // await transporter.verify()
         // console.log('Nodemailer connected successfully');
 
+        await seedTesterAdmin()
+        await seedTesterTechnician()
+        seedTesterCustomer()
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
