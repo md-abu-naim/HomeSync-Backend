@@ -5,25 +5,23 @@ model User {
     password        String?
     googleId        String?      @unique
     authProvider    AuthProvider @default(CREDENTIAL)
-    role            Role     @default(CUSTOMER)
+    role            Role         @default(CUSTOMER)
     status          UserStatus   @default(ACTIVE)
     isEmailVerified Boolean      @default(false)
 
-    isDeleted Boolean @default(false)
+    imageUrl      String @default("")
+    imagePublicId String @default("")
+
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     // Relationships
-    profile           Profile?
-    technicianProfile Technician?
-    serviceRequests   ServiceRequest[]   @relation("CustomerRequests")
-    assignedJobs      ServiceRequest[]   @relation("TechnicianJobs")
-    auditLogs         AuditLog[]
-    reviewsGiven      Review[]           @relation("CustomerReviews")
-    payments          Payment[]
+    customer        Customer?
+    technician      Technician?
 
-    @@index([email])
     @@index([role, status])
     @@map("users")
 }

@@ -4,6 +4,7 @@ import express, { type NextFunction, type Application, type Request, type Respon
 import httpStatus from "http-status";
 import { notFound } from "./app/middleware/notFound";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
+import { AuthRoutes } from "./app/module/auth/auth.route";
 
 const app: Application = express();
 
@@ -21,10 +22,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Basic route
+app.get("/", async (req: Request, res: Response) => {
+    res.status(httpStatus.OK).json({
+        success: true,
+        message: "Welcome to NexusField System Backend",
+    });
+});
+
+app.use('/api/v1/auth', AuthRoutes)
+
+// For Testing
 app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
     try {
-
-
         res.status(httpStatus.OK).json({
             success: true,
             message: "Testing ",
@@ -35,15 +45,6 @@ app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
         next(error)
     }
 })
-
-// Basic route
-app.get("/", async (req: Request, res: Response) => {
-    res.status(httpStatus.OK).json({
-        success: true,
-        message: "Welcome to NexusField System Backend",
-    });
-});
-
 app.use(globalErrorHandler);
 app.use(notFound);
 
