@@ -29,4 +29,6 @@ router.patch(
     OwnerController.updateProperty
 );
 
+router.delete("/property/:propertyId", auth(Role.OWNER), OwnerController.deleteProperty);
+
 export const OwnerRoutes = router;

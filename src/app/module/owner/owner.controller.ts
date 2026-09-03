@@ -33,24 +33,39 @@ const getMyProperties = catchAsync(async (req: Request, res: Response, next: Nex
     });
 });
 
-const updateProperty = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
-        const propertyId = req.params.propertyId;
-        const image = req.file || null;
-        const data = JSON.parse(req.body.data);
-        const userId = req.user?.userId;
+const updateProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const propertyId = req.params.propertyId;
+    const image = req.file || null;
+    const data = JSON.parse(req.body.data);
+    const userId = req.user?.userId;
 
-        const result = await OwnerServices.updateProperty( propertyId as string, userId as string, data, image);
+    const result = await OwnerServices.updateProperty(propertyId as string, userId as string, data, image);
 
-        sendResponse(res, {
-            statusCode: httpStatus.OK,
-            success: true,
-            message: "Property Updated Successfully",
-            data: result,
-        });
-    }
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Property Updated Successfully",
+        data: result,
+    });
+}
+);
+
+const deleteProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const propertyId = req.params.propertyId;
+    const userId = req.user?.userId;
+
+    const result = await OwnerServices.deleteProperty(propertyId as string, userId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Property Deleted Successfully",
+        data: result,
+    });
+}
 );
 
 export const OwnerController = {
     createProperty, getMyProperties,
-    updateProperty
+    updateProperty, deleteProperty
 }

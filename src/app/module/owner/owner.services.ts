@@ -183,7 +183,49 @@ const updateProperty = async (propertyId: string, userId: string, payload: IUpda
     return updatedProperty;
 };
 
+const deleteProperty = async (propertyId: string, userId: string) => {
+    const owner = await prisma.owner.findUnique({
+        where: {
+            userId,
+        },
+    });
+
+    if (!owner) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Owner Profile Not Found"
+        );
+    }
+
+    const property = await prisma.property.findFirst({
+        where: {
+            id: propertyId,
+            ownerId: owner.id,
+            isDeleted: false,
+        },
+    });
+
+    if (!property) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Property Not Found or You are not the owner"
+        );
+    }
+
+     await prisma.property.update({
+        where: {
+            id: propertyId,
+        },
+        data: {
+            isDeleted: true,
+            deletedAt: new Date(),
+        },
+    });
+
+    return null;
+};
+
 export const OwnerServices = {
     createProperty, getMyProperties,
-    updateProperty
+    updateProperty, deleteProperty
 };
