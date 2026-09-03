@@ -1,0 +1,44 @@
+model Property {
+    id      String @id @default(uuid())
+    ownerId String
+
+    title       String
+    description String?
+
+    propertyType PropertyType @default(HOUSE)
+
+    address String
+    city    String?
+    area    String?
+
+    imageUrl     String @default("")
+    imagePublicId String @default("")
+
+    latitude  Decimal? @db.Decimal(10, 7)
+    longitude Decimal? @db.Decimal(10, 7)
+
+    totalRooms Int @default(1)
+
+    status PropertyStatus @default(ACTIVE)
+
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+    rooms        Room[]
+    applications Rental[]
+    payments     Payment[]
+
+    @@index([ownerId])
+    @@index([city])
+    @@index([area])
+    @@index([propertyType])
+    @@index([status])
+    @@index([isDeleted])
+    @@index([createdAt])
+    @@map("properties")
+}

@@ -23,7 +23,7 @@ const verifyUserEmail = catchAsync(async (req: Request, res: Response) => {
 
 	const result = await AuthService.verifyUserEmail(payload);
 
-	const { accessToken, refreshToken, user, customer } = result;
+	const { accessToken, refreshToken, user, tenant } = result;
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
@@ -46,7 +46,7 @@ const verifyUserEmail = catchAsync(async (req: Request, res: Response) => {
 				accessToken,
 				refreshToken,
 				user,
-				customer,
+				tenant,
 			},
 		});
 	});
@@ -77,22 +77,6 @@ const verifyUserEmail = catchAsync(async (req: Request, res: Response) => {
 				accessToken,
 				refreshToken,
 			},
-		});
-	});
-
-	const getMe = catchAsync(async (req: Request, res: Response) => {
-		const user = req.user
-
-		if (!user) {
-			throw new AppError(httpStatus.BAD_REQUEST, "User information is missing in the request");
-		}
-
-		const result = await AuthService.getMe(user);
-		sendResponse(res, {
-			statusCode: httpStatus.OK,
-			success: true,
-			message: "User profile fetched successfully",
-			data: result,
 		});
 	});
 
@@ -158,7 +142,7 @@ const verifyUserEmail = catchAsync(async (req: Request, res: Response) => {
 
 	export const AuthController = {
 		createUser, verifyUserEmail,
-		loginUser, getMe,
+		loginUser,
 		refreshToken,
 		googleLogin
 	};

@@ -1,19 +1,38 @@
 model Payment {
-    id    String @id @default(uuid())
-    trxId String @unique
+    id String @id @default(uuid())
 
-    amount          Decimal       @db.Decimal(10, 2)
-    currency        String        @default("BDT")
-    provider        PaymentMethod @default(BKASH)
-    status          PaymentStatus @default(UNPAID)
-    gatewayResponse Json?
+    userId     String
+    propertyId String
+    roomId     String
+
+    rentalId String @unique
+
+    amount   Decimal @db.Decimal(10, 2)
+    currency String  @default("BDT")
+
+    paymentProvider PaymentProvider @default(BKASH)
+
+    transactionId String? @unique
+    paymentUrl    String?
+
+    status PaymentStatus @default(UNPAID)
+
+    paidAt DateTime?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    requestId      String         @unique
-    serviceRequest ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+    user     User     @relation(fields: [userId], references: [id])
+    property Property @relation(fields: [propertyId], references: [id])
+    room     Room     @relation(fields: [roomId], references: [id])
 
+    application Rental @relation(fields: [rentalId], references: [id])
+
+    @@index([userId])
+    @@index([propertyId])
+    @@index([roomId])
     @@index([status])
+    @@index([paymentProvider])
+    @@index([createdAt])
     @@map("payments")
 }

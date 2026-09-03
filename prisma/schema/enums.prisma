@@ -1,6 +1,6 @@
 enum Role {
-  CUSTOMER
-  TECHNICIAN
+  OWNER
+  TENANT
   ADMIN
 }
 
@@ -12,34 +12,74 @@ enum AuthProvider {
 enum UserStatus {
   ACTIVE
   BLOCKED
+  DELETED
 }
 
-enum RequestStatus {
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  HOSTEL
+  ROOM
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RoomType {
+  SINGLE
+  DOUBLE
+  SHARED
+}
+
+enum RoomAvailability {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum VerificationStatus {
   PENDING
-  ASSIGNED
-  ACCEPTED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
+  VERIFIED
   REJECTED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  BKASH
+  STRIPE
+  SSLCOMMERZ
 }
 
 enum PaymentStatus {
   UNPAID
   PAID
   FAILED
+  CANCELLED
   REFUNDED
 }
 
-enum PaymentMethod {
-  STRIPE
-  BKASH
-  SSLCOMMERZ
+enum PaymentType {
+  RENT
+  SECURITY_DEPOSIT
+  BOOKING_FEE
 }
 
-
-enum TechnicianStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum SleepSchedule {
+  EARLY_BIRD
+  NIGHT_OWL
+  FLEXIBLE
 }

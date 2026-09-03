@@ -16,6 +16,8 @@ export const seedTesterAdmin = async () => {
             return
         }
 
+
+
         const name = config.tester_admin_name
         const email = config.tester_admin_email
         const password = config.tester_admin_password
@@ -47,22 +49,23 @@ export const seedTesterAdmin = async () => {
         })
     }
 }
-export const seedTesterTechnician = async () => {
+
+export const seedTesterOwner = async () => {
     try {
-        const isAdminExists = await prisma.user.findFirst({
+        const isOwnerExists = await prisma.user.findFirst({
             where: {
-                role: Role.TECHNICIAN
+                role: Role.OWNER
             }
         })
 
-        if (isAdminExists) {
-            console.log("Technician Already Exists!");
+        if (isOwnerExists) {
+            console.log("Owner Already Exists!");
             return
         }
 
-        const name = config.tester_technician_name
-        const email = config.tester_technician_email
-        const password = config.tester_technician_password
+        const name = config.tester_owner_name
+        const email = config.tester_owner_email
+        const password = config.tester_owner_password
 
         if (!name || !email || !password) {
             throw new Error("Name, Email, Password is missing from .env!")
@@ -75,38 +78,38 @@ export const seedTesterTechnician = async () => {
                 name,
                 email,
                 password: hashedPassword,
-                role: Role.TECHNICIAN,
+                role: Role.OWNER,
                 isEmailVerified: true
             }
         })
 
-        console.log("Tester Technician Created!");
+        console.log("Tester Owner Created!");
     } catch (error) {
         console.log(error);
 
         await prisma.user.delete({
             where: {
-                email: config.tester_technician_email
+                email: config.tester_owner_email
             }
         })
     }
 }
-export const seedTesterCustomer = async () => {
+export const seedTesterTenant = async () => {
     try {
-        const isAdminExists = await prisma.user.findFirst({
+        const isTenantExists = await prisma.user.findFirst({
             where: {
-                role: Role.CUSTOMER
+                role: Role.TENANT
             }
         })
 
-        if (isAdminExists) {
-            console.log("Customer Already Exists!");
+        if (isTenantExists) {
+            console.log("Tenant Already Exists!");
             return
         }
 
-        const name = config.tester_customer_name
-        const email = config.tester_customer_email
-        const password = config.tester_customer_password
+        const name = config.tester_tenant_name
+        const email = config.tester_tenant_email
+        const password = config.tester_tenant_password
 
         if (!name || !email || !password) {
             throw new Error("Name, Email, Password is missing from .env!")
@@ -119,18 +122,18 @@ export const seedTesterCustomer = async () => {
                 name,
                 email,
                 password: hashedPassword,
-                role: Role.CUSTOMER,
+                role: Role.TENANT,
                 isEmailVerified: true
             }
         })
 
-        console.log("Tester Customer Created!");
+        console.log("Tester Tenant Created!");
     } catch (error) {
         console.log(error);
 
         await prisma.user.delete({
             where: {
-                email: config.tester_customer_email
+                email: config.tester_tenant_email
             }
         })
     }

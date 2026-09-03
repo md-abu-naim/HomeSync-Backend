@@ -16,7 +16,7 @@ import { googleClient } from "../../lib/googleAuth";
 import { TokenPayload } from "google-auth-library";
 
 const createUser = async (payload: IRegisterUser) => {
-	const { name, password, customer: customerData } = payload;
+	const { name, password, role, tenant: tenantData } = payload;
 	const email = payload.email.trim().toLowerCase();
 
 	const isUserExists = await prisma.user.findUnique({
@@ -41,7 +41,7 @@ const createUser = async (payload: IRegisterUser) => {
 
 	const userRegistationKey = `user-registation-data:${email}`
 	const redisUserPayload = {
-		name, email, password: hashedPassword, customer: customerData
+		name, email, password: hashedPassword, role, tenant: tenantData
 	}
 
 	await redisClient.set(userRegistationKey, JSON.stringify(redisUserPayload), {
@@ -59,9 +59,9 @@ const createUser = async (payload: IRegisterUser) => {
 	})
 
 	await transporter.sendMail({
-		from: '"NexusField Platform" <no-reply@nexusfield.com>',
+		from: '"HomeSync Platform" <no-reply@home-sync.com>',
 		to: email,
-		subject: "Action Required: Verify Your NexusField Account",
+		subject: "Action Required: Verify Your HomeSync Account",
 		html
 	})
 };
@@ -78,7 +78,7 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 		throw new AppError(httpStatus.FORBIDDEN, 'User is blocked')
 	}
 
-	if (isUserExists?.isDeleted) {
+	if (isUserExists?.isDeleted || isUserExists?.status === "DELETED") {
 		throw new AppError(httpStatus.FORBIDDEN, "User is deleted")
 	}
 
@@ -110,24 +110,42 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 
 	const userPayload: IRegisterUser = JSON.parse(redisUserData)
 
+	const profile = userPayload.role === Role.TENANT
+		? {
+			tenant: {
+				create: {
+					phone: userPayload.tenant?.phone || "",
+					occupation: userPayload.tenant?.occupation || "",
+					bio: userPayload.tenant?.bio || "",
+				},
+			},
+		}
+		: {
+			owner: {
+				create: {
+					phone: userPayload.owner?.phone || "",
+					address: userPayload.owner?.address || "",
+				},
+			},
+		};
+
+	const include = userPayload.role === "TENANT"
+		? { tenant: true }
+		: { owner: true };
+
 	const createdUser = await prisma.user.create({
 		data: {
 			name: userPayload.name,
 			email: userPayload.email,
 			password: userPayload.password,
-			role: Role.CUSTOMER,
+			role: userPayload.role,
 			status: UserStatus.ACTIVE,
 			isEmailVerified: true,
-			customer: {
-				create: {
-					phoneNumber: userPayload.customer?.phoneNumber || '',
-					address: userPayload.customer?.address || '',
-					city: userPayload.customer?.city || ''
-				},
-			},
+
+			...profile
 		},
 		omit: { password: true },
-		include: { customer: true },
+		include
 	});
 
 	await redisClient.del([userRegistationKey])
@@ -140,13 +158,13 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 	})
 
 	await transporter.sendMail({
-		from: '"NexusField Platform" <no-reply@nexusfield.com>',
+		from: '"HomeSync Platform" <no-reply@home-sync.com>',
 		to: email,
-		subject: "Welcome to NexusField!",
+		subject: "Welcome to HomeSync!",
 		html
 	})
 
-	const { customer, ...user } = createdUser;
+	const { tenant, ...user } = createdUser;
 	const jwtPayload = {
 		userId: user.id,
 		name: user.name,
@@ -168,7 +186,7 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 
 	return {
 		user,
-		customer,
+		tenant,
 		accessToken,
 		refreshToken,
 	};
@@ -190,7 +208,7 @@ const loginUser = async (payload: ILoginUserPayload) => {
 		throw new AppError(httpStatus.FORBIDDEN, "User is blocked");
 	}
 
-	if (user.isDeleted) {
+	if (user.isDeleted || user.status === 'DELETED') {
 		throw new AppError(httpStatus.FORBIDDEN, "User is deleted");
 	}
 
@@ -227,26 +245,6 @@ const loginUser = async (payload: ILoginUserPayload) => {
 		accessToken,
 		refreshToken,
 	};
-};
-
-const getMe = async (user: IRequestUser) => {
-	const isUserExists = await prisma.user.findUnique({
-		where: {
-			id: user.userId,
-		},
-		include: {
-			customer: true,
-		},
-		omit: {
-			password: true,
-		},
-	});
-
-	if (!isUserExists) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not found");
-	}
-
-	return isUserExists;
 };
 
 const refreshToken = async (token: string) => {
@@ -328,7 +326,7 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 	const isUserExists = await prisma.user.findUnique({
 		where: {
 			email: googleIdTokenPayload.email,
-			role: Role.CUSTOMER,
+			role: Role.TENANT,
 			googleId: googleIdTokenPayload.sub
 		}
 	})
@@ -339,7 +337,7 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 		const isUserExistsWithCredentials = await prisma.user.findUnique({
 			where: {
 				email: googleIdTokenPayload.email,
-				role: Role.CUSTOMER,
+				role: Role.TENANT,
 				authProvider: AuthProvider.GOOGLE
 			}
 		})
@@ -368,12 +366,12 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 				data: {
 					name: googleIdTokenPayload.name,
 					email: googleIdTokenPayload.email,
-					role: Role.CUSTOMER,
+					role: Role.TENANT,
 					googleId: googleIdTokenPayload.sub,
 					authProvider: AuthProvider.GOOGLE,
 					isEmailVerified: true,
 					imageUrl: googleIdTokenPayload.picture || '',
-					customer: {
+					tenant: {
 						create: {}
 					}
 				}
@@ -387,9 +385,9 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 			})
 
 			await transporter.sendMail({
-				from: '"NexusField Platform" <no-reply@nexusfield.com>',
+				from: '"HomeSync Platform" <no-reply@home-sync.com>',
 				to: user.email,
-				subject: "Welcome to NexusField!",
+				subject: "Welcome to HomeSync!",
 				html
 			})
 		}
@@ -402,7 +400,7 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 	if (user.status === UserStatus.BLOCKED) {
 		throw new AppError(httpStatus.FORBIDDEN, "User Is Blocked")
 	}
-	if (user.isDeleted) {
+	if (user.isDeleted || user.status === 'DELETED') {
 		throw new AppError(httpStatus.FORBIDDEN, "User is Deleted")
 	}
 
@@ -433,7 +431,7 @@ const googleLoginIntoDB = async (payload: IGoogleLoginPayload) => {
 
 export const AuthService = {
 	createUser, verifyUserEmail,
-	loginUser, getMe,
+	loginUser,
 	refreshToken,
 	googleLoginIntoDB
 };

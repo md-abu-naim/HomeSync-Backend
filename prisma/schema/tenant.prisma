@@ -1,0 +1,32 @@
+model Tenant {
+    id     String @id @default(uuid())
+    userId String @unique
+
+    phone      String?
+    occupation String?
+    bio        String?
+
+    gender Gender?   @default(MALE)
+
+    preferredLocation String?
+
+    minBudget Decimal? @db.Decimal(10, 2)
+    maxBudget Decimal? @db.Decimal(10, 2)
+
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    roommate     Roommate?
+    applications Rental[]
+
+    @@index([userId])
+    @@index([gender])
+    @@index([preferredLocation])
+    @@index([minBudget, maxBudget])
+    @@map("tenants")
+}

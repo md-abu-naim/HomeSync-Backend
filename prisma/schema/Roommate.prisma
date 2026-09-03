@@ -1,0 +1,27 @@
+model Roommate {
+    id                  String        @id @default(uuid())
+    tenantId            String        @unique
+
+    gender     Gender?
+
+    smokingAllowed      Boolean       @default(false)
+    petsAllowed         Boolean       @default(false)
+
+    preferredLocation   String?
+
+    minBudget           Decimal?      @db.Decimal(10, 2)
+    maxBudget           Decimal?      @db.Decimal(10, 2)
+
+
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+
+    tenant              Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+    @@index([tenantId])
+    @@index([gender])
+    @@index([preferredLocation])
+    @@index([minBudget, maxBudget])
+
+    @@map("roommates")
+}

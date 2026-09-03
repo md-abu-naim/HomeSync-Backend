@@ -22,29 +22,14 @@ CREATE TYPE "TechnicianStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 -- CreateTable
 CREATE TABLE "reviews" (
     "id" TEXT NOT NULL,
-    "requestId" TEXT NOT NULL,
-    "customerId" TEXT NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "requestId" TEXT NOT NULL,
+    "customerId" TEXT NOT NULL,
 
     CONSTRAINT "reviews_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "audit_logs" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT,
-    "action" TEXT NOT NULL,
-    "entity" TEXT NOT NULL,
-    "entityId" TEXT,
-    "details" JSONB,
-    "ipAddress" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -61,11 +46,24 @@ CREATE TABLE "categories" (
 );
 
 -- CreateTable
+CREATE TABLE "customers" (
+    "id" TEXT NOT NULL,
+    "phoneNumber" TEXT,
+    "address" TEXT,
+    "city" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "customers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "payments" (
     "id" TEXT NOT NULL,
     "trxId" TEXT NOT NULL,
-    "requestId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'BDT',
     "provider" "PaymentMethod" NOT NULL DEFAULT 'BKASH',
@@ -73,23 +71,9 @@ CREATE TABLE "payments" (
     "gatewayResponse" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "requestId" TEXT NOT NULL,
 
     CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "profiles" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "phoneNumber" TEXT,
-    "profileUrl" TEXT,
-    "address" TEXT,
-    "city" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -99,9 +83,11 @@ CREATE TABLE "services" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "basePrice" DOUBLE PRECISION NOT NULL,
-    "imageUrl" TEXT,
+    "imageUrl" TEXT NOT NULL DEFAULT '',
+    "imagePublicId" TEXT NOT NULL DEFAULT '',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -131,21 +117,24 @@ CREATE TABLE "service_requests" (
 );
 
 -- CreateTable
-CREATE TABLE "technician" (
+CREATE TABLE "technicians" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "contactNumber" TEXT,
     "specialization" TEXT NOT NULL,
     "experienceYears" INTEGER NOT NULL DEFAULT 0,
-    "hourlyRate" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "hourlyRate" DECIMAL(10,2) NOT NULL DEFAULT 0,
     "isAvailable" BOOLEAN NOT NULL DEFAULT true,
     "bio" TEXT,
     "ratingAverage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "totalReviews" INTEGER NOT NULL DEFAULT 0,
     "status" "TechnicianStatus" NOT NULL DEFAULT 'PENDING',
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
 
-    CONSTRAINT "technician_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "technicians_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -159,7 +148,10 @@ CREATE TABLE "users" (
     "role" "Role" NOT NULL DEFAULT 'CUSTOMER',
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "imageUrl" TEXT NOT NULL DEFAULT '',
+    "imagePublicId" TEXT NOT NULL DEFAULT '',
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -170,13 +162,13 @@ CREATE TABLE "users" (
 CREATE UNIQUE INDEX "reviews_requestId_key" ON "reviews"("requestId");
 
 -- CreateIndex
-CREATE INDEX "audit_logs_userId_idx" ON "audit_logs"("userId");
-
--- CreateIndex
-CREATE INDEX "audit_logs_action_idx" ON "audit_logs"("action");
-
--- CreateIndex
 CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
+
+-- CreateIndex
+CREATE INDEX "categories_isDeleted_idx" ON "categories"("isDeleted");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "customers_userId_key" ON "customers"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "payments_trxId_key" ON "payments"("trxId");
@@ -185,13 +177,7 @@ CREATE UNIQUE INDEX "payments_trxId_key" ON "payments"("trxId");
 CREATE UNIQUE INDEX "payments_requestId_key" ON "payments"("requestId");
 
 -- CreateIndex
-CREATE INDEX "payments_trxId_idx" ON "payments"("trxId");
-
--- CreateIndex
 CREATE INDEX "payments_status_idx" ON "payments"("status");
-
--- CreateIndex
-CREATE UNIQUE INDEX "profiles_userId_key" ON "profiles"("userId");
 
 -- CreateIndex
 CREATE INDEX "services_categoryId_idx" ON "services"("categoryId");
@@ -212,13 +198,13 @@ CREATE INDEX "service_requests_technicianId_idx" ON "service_requests"("technici
 CREATE INDEX "service_requests_status_idx" ON "service_requests"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "technician_userId_key" ON "technician"("userId");
+CREATE UNIQUE INDEX "technicians_userId_key" ON "technicians"("userId");
 
 -- CreateIndex
-CREATE INDEX "technician_isAvailable_idx" ON "technician"("isAvailable");
+CREATE INDEX "technicians_isAvailable_idx" ON "technicians"("isAvailable");
 
 -- CreateIndex
-CREATE INDEX "technician_specialization_idx" ON "technician"("specialization");
+CREATE INDEX "technicians_specialization_idx" ON "technicians"("specialization");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -227,40 +213,31 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "users_googleId_key" ON "users"("googleId");
 
 -- CreateIndex
-CREATE INDEX "users_email_idx" ON "users"("email");
-
--- CreateIndex
 CREATE INDEX "users_role_status_idx" ON "users"("role", "status");
 
 -- AddForeignKey
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "service_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "customers" ADD CONSTRAINT "customers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "service_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "services" ADD CONSTRAINT "services_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "services" ADD CONSTRAINT "services_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "technicians"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "services"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "technician" ADD CONSTRAINT "technician_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "technicians" ADD CONSTRAINT "technicians_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

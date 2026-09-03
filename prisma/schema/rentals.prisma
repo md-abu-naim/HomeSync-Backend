@@ -1,0 +1,32 @@
+model Rental {
+    id              String            @id @default(uuid())
+
+    tenantId        String
+    propertyId      String
+    roomId          String
+
+    message         String?
+    proposedMoveIn  DateTime?
+
+    status          ApplicationStatus @default(PENDING)
+
+    reviewedAt      DateTime?
+    reviewNote      String?
+
+    createdAt       DateTime           @default(now())
+    updatedAt       DateTime           @updatedAt
+
+    tenant          Tenant             @relation(fields: [tenantId], references: [id])
+    property        Property           @relation(fields: [propertyId], references: [id])
+    room            Room               @relation(fields: [roomId], references: [id])
+
+    payment         Payment?
+
+    @@index([tenantId])
+    @@index([propertyId])
+    @@index([roomId])
+    @@index([status])
+    @@index([createdAt])
+
+    @@map("rentals")
+}

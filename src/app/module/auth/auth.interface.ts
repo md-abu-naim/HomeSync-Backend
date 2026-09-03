@@ -6,15 +6,20 @@ export interface IRegisterUser {
     password: string
     role: Role;
     profileUrl?: string
-    customer: ICustomer
+    tenant?: ITenant,
+    owner?: IOwner
 }
 
-export interface ICustomer {
-    phoneNumber?: string
+export interface ITenant {
+    phone?: string
+    occupation: string
+    bio?: string
+}
+
+export interface IOwner {
+    phone?: string,
     address?: string
-    city?: string
 }
-
 
 export interface IVerifyUserEmail {
     email: string
@@ -27,12 +32,12 @@ export interface ILoginUserPayload {
 }
 
 export interface IRequestUser {
-	userId: string;
-	email: string;
-	name: string;
-	role: Role;
+    userId: string;
+    email: string;
+    name: string;
+    role: Role;
 }
 
 export interface IGoogleLoginPayload {
-	idToken: string
+    idToken: string
 }
