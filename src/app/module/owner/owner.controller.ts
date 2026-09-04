@@ -9,6 +9,8 @@ const createProperty = catchAsync(async (req: Request, res: Response, next: Next
     const data = JSON.parse(req.body.data)
     const userId = req.user?.userId
 
+    console.log(data, image);
+
     const result = await OwnerServices.createProperty(data, userId as string, image)
 
     sendResponse(res, {

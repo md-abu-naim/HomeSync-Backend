@@ -43,25 +43,27 @@ export const createPropertyValidationSchema = z.object({
         .optional(),
 
     latitude: z
+        .coerce
         .number({
             message: "Latitude must be a number",
         })
         .optional(),
 
     longitude: z
+        .coerce
         .number({
             message: "Longitude must be a number",
         })
         .optional(),
+    totalRooms: z
+        .coerce
+        .number({message: "TotalRooms must be a number"})
+        .optional()
 
-    imageUrl: z
-        .string()
-        .url("Invalid image URL")
-        .optional(),
 });
 
 export const updatePropertyValidationSchema = z.object({
-    title: z
+   title: z
         .string()
         .trim()
         .min(3, "Title must be at least 3 characters long")
@@ -76,6 +78,7 @@ export const updatePropertyValidationSchema = z.object({
         .enum([
             PropertyType.HOUSE,
             PropertyType.APARTMENT,
+            PropertyType.HOSTEL,
             PropertyType.ROOM,
         ], {
             message: "Invalid property type",
@@ -99,14 +102,20 @@ export const updatePropertyValidationSchema = z.object({
         .optional(),
 
     latitude: z
+        .coerce
         .number({
             message: "Latitude must be a number",
         })
         .optional(),
 
     longitude: z
+        .coerce
         .number({
             message: "Longitude must be a number",
         })
         .optional(),
+    totalRooms: z
+        .coerce
+        .number({message: "TotalRooms must be a number"})
+        .optional()
 });

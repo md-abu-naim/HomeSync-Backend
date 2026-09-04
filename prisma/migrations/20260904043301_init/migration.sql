@@ -1,27 +1,14 @@
-/*
-  Warnings:
-
-  - The values [CUSTOMER,TECHNICIAN] on the enum `Role` will be removed. If these variants are still used in the database, this will fail.
-  - You are about to drop the column `gatewayResponse` on the `payments` table. All the data in the column will be lost.
-  - You are about to drop the column `provider` on the `payments` table. All the data in the column will be lost.
-  - You are about to drop the column `requestId` on the `payments` table. All the data in the column will be lost.
-  - You are about to drop the column `trxId` on the `payments` table. All the data in the column will be lost.
-  - You are about to drop the `categories` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `customers` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `reviews` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `service_requests` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `services` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `technicians` table. If the table is not empty, all the data it contains will be lost.
-  - A unique constraint covering the columns `[rentalId]` on the table `payments` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[transactionId]` on the table `payments` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `propertyId` to the `payments` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `rentalId` to the `payments` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `roomId` to the `payments` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `userId` to the `payments` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
-CREATE TYPE "PropertyType" AS ENUM ('APARTMENT', 'HOUSE', 'VILLA', 'STUDIO', 'HOSTEL');
+CREATE TYPE "Role" AS ENUM ('OWNER', 'TENANT', 'ADMIN');
+
+-- CreateEnum
+CREATE TYPE "AuthProvider" AS ENUM ('CREDENTIAL', 'GOOGLE');
+
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BLOCKED', 'DELETED');
+
+-- CreateEnum
+CREATE TYPE "PropertyType" AS ENUM ('APARTMENT', 'HOUSE', 'HOSTEL', 'ROOM');
 
 -- CreateEnum
 CREATE TYPE "PropertyStatus" AS ENUM ('ACTIVE', 'INACTIVE');
@@ -45,108 +32,13 @@ CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CAN
 CREATE TYPE "PaymentProvider" AS ENUM ('BKASH', 'STRIPE', 'SSLCOMMERZ');
 
 -- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('UNPAID', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED');
+
+-- CreateEnum
 CREATE TYPE "PaymentType" AS ENUM ('RENT', 'SECURITY_DEPOSIT', 'BOOKING_FEE');
 
 -- CreateEnum
 CREATE TYPE "SleepSchedule" AS ENUM ('EARLY_BIRD', 'NIGHT_OWL', 'FLEXIBLE');
-
--- AlterEnum
-ALTER TYPE "PaymentStatus" ADD VALUE 'CANCELLED';
-
--- AlterEnum
-BEGIN;
-CREATE TYPE "Role_new" AS ENUM ('OWNER', 'TENANT', 'ADMIN');
-ALTER TABLE "public"."users" ALTER COLUMN "role" DROP DEFAULT;
-ALTER TABLE "users" ALTER COLUMN "role" TYPE "Role_new" USING ("role"::text::"Role_new");
-ALTER TYPE "Role" RENAME TO "Role_old";
-ALTER TYPE "Role_new" RENAME TO "Role";
-DROP TYPE "public"."Role_old";
-ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'TENANT';
-COMMIT;
-
--- AlterEnum
-ALTER TYPE "UserStatus" ADD VALUE 'DELETED';
-
--- DropForeignKey
-ALTER TABLE "customers" DROP CONSTRAINT "customers_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "payments" DROP CONSTRAINT "payments_requestId_fkey";
-
--- DropForeignKey
-ALTER TABLE "reviews" DROP CONSTRAINT "reviews_customerId_fkey";
-
--- DropForeignKey
-ALTER TABLE "reviews" DROP CONSTRAINT "reviews_requestId_fkey";
-
--- DropForeignKey
-ALTER TABLE "service_requests" DROP CONSTRAINT "service_requests_customerId_fkey";
-
--- DropForeignKey
-ALTER TABLE "service_requests" DROP CONSTRAINT "service_requests_serviceId_fkey";
-
--- DropForeignKey
-ALTER TABLE "service_requests" DROP CONSTRAINT "service_requests_technicianId_fkey";
-
--- DropForeignKey
-ALTER TABLE "services" DROP CONSTRAINT "services_categoryId_fkey";
-
--- DropForeignKey
-ALTER TABLE "technicians" DROP CONSTRAINT "technicians_userId_fkey";
-
--- DropIndex
-DROP INDEX "payments_requestId_key";
-
--- DropIndex
-DROP INDEX "payments_trxId_key";
-
--- DropIndex
-DROP INDEX "users_role_status_idx";
-
--- AlterTable
-ALTER TABLE "payments" DROP COLUMN "gatewayResponse",
-DROP COLUMN "provider",
-DROP COLUMN "requestId",
-DROP COLUMN "trxId",
-ADD COLUMN     "paidAt" TIMESTAMP(3),
-ADD COLUMN     "paymentProvider" "PaymentProvider" NOT NULL DEFAULT 'BKASH',
-ADD COLUMN     "paymentUrl" TEXT,
-ADD COLUMN     "propertyId" TEXT NOT NULL,
-ADD COLUMN     "rentalId" TEXT NOT NULL,
-ADD COLUMN     "roomId" TEXT NOT NULL,
-ADD COLUMN     "transactionId" TEXT,
-ADD COLUMN     "userId" TEXT NOT NULL;
-
--- AlterTable
-ALTER TABLE "users" ADD COLUMN     "needPasswordChange" BOOLEAN NOT NULL DEFAULT false,
-ALTER COLUMN "role" SET DEFAULT 'TENANT';
-
--- DropTable
-DROP TABLE "categories";
-
--- DropTable
-DROP TABLE "customers";
-
--- DropTable
-DROP TABLE "reviews";
-
--- DropTable
-DROP TABLE "service_requests";
-
--- DropTable
-DROP TABLE "services";
-
--- DropTable
-DROP TABLE "technicians";
-
--- DropEnum
-DROP TYPE "PaymentMethod";
-
--- DropEnum
-DROP TYPE "RequestStatus";
-
--- DropEnum
-DROP TYPE "TechnicianStatus";
 
 -- CreateTable
 CREATE TABLE "roommates" (
@@ -177,6 +69,26 @@ CREATE TABLE "owners" (
 );
 
 -- CreateTable
+CREATE TABLE "payments" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "propertyId" TEXT NOT NULL,
+    "roomId" TEXT NOT NULL,
+    "rentalId" TEXT NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'BDT',
+    "paymentProvider" "PaymentProvider" NOT NULL DEFAULT 'BKASH',
+    "transactionId" TEXT,
+    "paymentUrl" TEXT,
+    "status" "PaymentStatus" NOT NULL DEFAULT 'UNPAID',
+    "paidAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "properties" (
     "id" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
@@ -186,9 +98,11 @@ CREATE TABLE "properties" (
     "address" TEXT NOT NULL,
     "city" TEXT,
     "area" TEXT,
+    "imageUrl" TEXT NOT NULL DEFAULT '',
+    "imagePublicId" TEXT NOT NULL DEFAULT '',
     "latitude" DECIMAL(10,7),
     "longitude" DECIMAL(10,7),
-    "totalRooms" INTEGER NOT NULL DEFAULT 0,
+    "totalRooms" INTEGER NOT NULL DEFAULT 1,
     "status" "PropertyStatus" NOT NULL DEFAULT 'ACTIVE',
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
@@ -199,7 +113,7 @@ CREATE TABLE "properties" (
 );
 
 -- CreateTable
-CREATE TABLE "rental_applications" (
+CREATE TABLE "rentals" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "propertyId" TEXT NOT NULL,
@@ -212,7 +126,7 @@ CREATE TABLE "rental_applications" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "rental_applications_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "rentals_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -243,7 +157,7 @@ CREATE TABLE "tenants" (
     "phone" TEXT,
     "occupation" TEXT,
     "bio" TEXT,
-    "gender" "Gender",
+    "gender" "Gender" DEFAULT 'MALE',
     "preferredLocation" TEXT,
     "minBudget" DECIMAL(10,2),
     "maxBudget" DECIMAL(10,2),
@@ -253,6 +167,28 @@ CREATE TABLE "tenants" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "tenants_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT,
+    "googleId" TEXT,
+    "authProvider" "AuthProvider" NOT NULL DEFAULT 'CREDENTIAL',
+    "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "role" "Role" NOT NULL DEFAULT 'TENANT',
+    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
+    "needPasswordChange" BOOLEAN NOT NULL DEFAULT false,
+    "imageUrl" TEXT NOT NULL DEFAULT '',
+    "imagePublicId" TEXT NOT NULL DEFAULT '',
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -277,6 +213,30 @@ CREATE UNIQUE INDEX "owners_userId_key" ON "owners"("userId");
 CREATE INDEX "owners_userId_idx" ON "owners"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "payments_rentalId_key" ON "payments"("rentalId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "payments_transactionId_key" ON "payments"("transactionId");
+
+-- CreateIndex
+CREATE INDEX "payments_userId_idx" ON "payments"("userId");
+
+-- CreateIndex
+CREATE INDEX "payments_propertyId_idx" ON "payments"("propertyId");
+
+-- CreateIndex
+CREATE INDEX "payments_roomId_idx" ON "payments"("roomId");
+
+-- CreateIndex
+CREATE INDEX "payments_status_idx" ON "payments"("status");
+
+-- CreateIndex
+CREATE INDEX "payments_paymentProvider_idx" ON "payments"("paymentProvider");
+
+-- CreateIndex
+CREATE INDEX "payments_createdAt_idx" ON "payments"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "properties_ownerId_idx" ON "properties"("ownerId");
 
 -- CreateIndex
@@ -298,19 +258,19 @@ CREATE INDEX "properties_isDeleted_idx" ON "properties"("isDeleted");
 CREATE INDEX "properties_createdAt_idx" ON "properties"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "rental_applications_tenantId_idx" ON "rental_applications"("tenantId");
+CREATE INDEX "rentals_tenantId_idx" ON "rentals"("tenantId");
 
 -- CreateIndex
-CREATE INDEX "rental_applications_propertyId_idx" ON "rental_applications"("propertyId");
+CREATE INDEX "rentals_propertyId_idx" ON "rentals"("propertyId");
 
 -- CreateIndex
-CREATE INDEX "rental_applications_roomId_idx" ON "rental_applications"("roomId");
+CREATE INDEX "rentals_roomId_idx" ON "rentals"("roomId");
 
 -- CreateIndex
-CREATE INDEX "rental_applications_status_idx" ON "rental_applications"("status");
+CREATE INDEX "rentals_status_idx" ON "rentals"("status");
 
 -- CreateIndex
-CREATE INDEX "rental_applications_createdAt_idx" ON "rental_applications"("createdAt");
+CREATE INDEX "rentals_createdAt_idx" ON "rentals"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "rooms_propertyId_idx" ON "rooms"("propertyId");
@@ -349,25 +309,10 @@ CREATE INDEX "tenants_preferredLocation_idx" ON "tenants"("preferredLocation");
 CREATE INDEX "tenants_minBudget_maxBudget_idx" ON "tenants"("minBudget", "maxBudget");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "payments_rentalId_key" ON "payments"("rentalId");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "payments_transactionId_key" ON "payments"("transactionId");
-
--- CreateIndex
-CREATE INDEX "payments_userId_idx" ON "payments"("userId");
-
--- CreateIndex
-CREATE INDEX "payments_propertyId_idx" ON "payments"("propertyId");
-
--- CreateIndex
-CREATE INDEX "payments_roomId_idx" ON "payments"("roomId");
-
--- CreateIndex
-CREATE INDEX "payments_paymentProvider_idx" ON "payments"("paymentProvider");
-
--- CreateIndex
-CREATE INDEX "payments_createdAt_idx" ON "payments"("createdAt");
+CREATE UNIQUE INDEX "users_googleId_key" ON "users"("googleId");
 
 -- CreateIndex
 CREATE INDEX "users_role_idx" ON "users"("role");
@@ -397,19 +342,19 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_propertyId_fkey" FOREIGN KEY ("p
 ALTER TABLE "payments" ADD CONSTRAINT "payments_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_rentalId_fkey" FOREIGN KEY ("rentalId") REFERENCES "rental_applications"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "payments" ADD CONSTRAINT "payments_rentalId_fkey" FOREIGN KEY ("rentalId") REFERENCES "rentals"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "properties" ADD CONSTRAINT "properties_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "owners"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "rental_applications" ADD CONSTRAINT "rental_applications_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "rentals" ADD CONSTRAINT "rentals_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "rental_applications" ADD CONSTRAINT "rental_applications_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "properties"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "rentals" ADD CONSTRAINT "rentals_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "properties"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "rental_applications" ADD CONSTRAINT "rental_applications_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "rentals" ADD CONSTRAINT "rentals_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "rooms" ADD CONSTRAINT "rooms_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "properties"("id") ON DELETE CASCADE ON UPDATE CASCADE;
