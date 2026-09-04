@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import httpStatus from "http-status";
 import { ICreateRoomPayload, IUpdateRoomPayload } from "./room.interface";
+import { RoomAvailability } from "../../../../generated/prisma/enums";
 
 const createRoom = async (propertyId: string, userId: string, payload: ICreateRoomPayload) => {
 
@@ -165,7 +166,7 @@ const updateRoom = async (roomId: string, userId: string, payload: IUpdateRoomPa
 
         if (existingRoom && !existingRoom.isDeleted) {
             throw new AppError(
-                httpStatus.CONFLICT,"Room number already exists in this property"
+                httpStatus.CONFLICT, "Room number already exists in this property"
             );
         }
     }
@@ -185,7 +186,105 @@ const updateRoom = async (roomId: string, userId: string, payload: IUpdateRoomPa
     return updatedRoom;
 };
 
+const deleteRoom = async (roomId: string, userId: string) => {
+    const owner = await prisma.owner.findUnique({
+        where: {
+            userId,
+        },
+    });
+
+    if (!owner) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Owner Profile Not Found"
+        );
+    }
+
+    const room = await prisma.room.findFirst({
+        where: {
+            id: roomId,
+            isDeleted: false,
+            property: {
+                ownerId: owner.id,
+                isDeleted: false,
+            },
+        },
+    });
+
+    if (!room) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Room Not Found or You are not the owner"
+        );
+    }
+
+    // Soft delete room
+    await prisma.room.update({
+        where: {
+            id: roomId,
+        },
+        data: {
+            isDeleted: true,
+            deletedAt: new Date(),
+        },
+    });
+
+    await prisma.property.update({
+        where: {
+            id: room.propertyId,
+        },
+        data: {
+            totalRooms: {
+                decrement: 1,
+            },
+        },
+    });
+
+    return null;
+};
+
+const updateRoomAvailability = async (roomId: string, userId: string, availability: RoomAvailability) => {
+    const owner = await prisma.owner.findUnique({
+        where: {
+            userId,
+        },
+    });
+
+    if (!owner) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Owner Profile Not Found"
+        );
+    }
+
+    const room = await prisma.room.findFirst({
+        where: {
+            id: roomId,
+            isDeleted: false,
+            property: {
+                ownerId: owner.id,
+                isDeleted: false,
+            },
+        },
+    });
+
+    if (!room) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Room Not Found or You are not the owner"
+        );
+    }
+
+    const updatedRoom = await prisma.room.update({
+        where: {
+            id: roomId,
+        },
+        data: {
+            availability,
+        },
+    });
+
+    return updatedRoom;
+};
+
 export const RoomServices = {
     createRoom, getPropertyRooms,
-    getRoomById, updateRoom
+    getRoomById, updateRoom,
+    deleteRoom, updateRoomAvailability
 };

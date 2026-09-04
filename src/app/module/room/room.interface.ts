@@ -1,4 +1,4 @@
-import { RoomType } from "../../../../generated/prisma/enums";
+import { RoomAvailability, RoomType } from "../../../../generated/prisma/enums";
 
 export interface ICreateRoomPayload {
     roomNumber: string;

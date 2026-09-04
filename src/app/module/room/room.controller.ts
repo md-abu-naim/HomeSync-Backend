@@ -57,10 +57,41 @@ const updateRoom = catchAsync(async (req: Request, res: Response, next: NextFunc
         message: "Room Updated Successfully",
         data: result,
     });
-}
-);
+});
+
+const deleteRoom = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const roomId = req.params.id;
+    const userId = req.user?.userId;
+
+    const result = await RoomServices.deleteRoom(
+        roomId as string,
+        userId as string
+    );
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Room Deleted Successfully",
+        data: result,
+    });
+})
+
+const updateRoomAvailability = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const roomId = req.params.id;
+    const userId = req.user?.userId;
+
+    const result = await RoomServices.updateRoomAvailability(roomId as string, userId as string, req.body.availability)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Room Availability Updated Successfully",
+        data: result,
+    });
+})
 
 export const RoomController = {
     createRoom, getPropertyRooms,
-    getRoomById, updateRoom
+    getRoomById, updateRoom,
+    deleteRoom, updateRoomAvailability
 };

@@ -1,5 +1,5 @@
 import z from "zod";
-import { RoomType } from "../../../../generated/prisma/enums";
+import { RoomAvailability, RoomType } from "../../../../generated/prisma/enums";
 
 export const createRoomValidationSchema = z.object({
     roomNumber: z
@@ -99,4 +99,14 @@ export const updateRoomValidationSchema = z.object({
         .int("Capacity must be an integer")
         .positive("Capacity must be greater than 0")
         .optional(),
+});
+
+export const updateRoomAvailabilityValidationSchema = z.object({
+    availability: z.enum([
+        RoomAvailability.AVAILABLE,
+        RoomAvailability.OCCUPIED,
+        RoomAvailability.RESERVED,
+    ], {
+        message: "Invalid room availability"
+    }),
 });

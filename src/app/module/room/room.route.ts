@@ -3,7 +3,7 @@ import { auth } from "../../middleware/checkAuth";
 import { Role } from "../../../../generated/prisma/enums";
 import { validationRequest } from "../../utils/validationRequest";
 import { RoomController } from "./room.controller";
-import { createRoomValidationSchema, updateRoomValidationSchema } from "./room.validation";
+import { createRoomValidationSchema, updateRoomAvailabilityValidationSchema, updateRoomValidationSchema } from "./room.validation";
 
 const router = Router();
 
@@ -18,6 +18,13 @@ router.patch(
     "/:id",
     auth(Role.OWNER), validationRequest(updateRoomValidationSchema),
     RoomController.updateRoom
+);
+router.delete("/:id", auth(Role.OWNER), RoomController.deleteRoom);
+router.patch(
+    "/availability/:id",
+    auth(Role.OWNER),
+    validationRequest(updateRoomAvailabilityValidationSchema),
+    RoomController.updateRoomAvailability
 );
 
 export const RoomRoutes = router;
