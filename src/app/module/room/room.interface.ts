@@ -9,3 +9,13 @@ export interface ICreateRoomPayload {
     securityDeposit?: number;
     capacity?: number;
 }
+
+export interface IUpdateRoomPayload {
+    roomNumber?: string;
+    title?: string;
+    description?: string;
+    roomType?: RoomType;
+    amount?: number;
+    securityDeposit?: number;
+    capacity?: number;
+}

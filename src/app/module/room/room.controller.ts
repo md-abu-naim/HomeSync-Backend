@@ -31,6 +31,36 @@ const getPropertyRooms = catchAsync(async (req: Request, res: Response, next: Ne
     });
 });
 
+const getRoomById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const roomId = req.params.id;
+
+    const result = await RoomServices.getRoomById(roomId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Room Retrieved Successfully",
+        data: result,
+    });
+});
+
+const updateRoom = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const roomId = req.params.id;
+    const userId = req.user?.userId;
+
+    const result = await RoomServices.updateRoom(roomId as string, userId as string, req.body);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Room Updated Successfully",
+        data: result,
+    });
+}
+);
+
 export const RoomController = {
-    createRoom, getPropertyRooms
+    createRoom, getPropertyRooms,
+    getRoomById, updateRoom
 };
