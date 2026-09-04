@@ -8,6 +8,7 @@ import { AuthRoutes } from "./app/module/auth/auth.route";
 import { UserRoutes } from "./app/module/user/user.route";
 import { OwnerRoutes } from "./app/module/owner/owner.route";
 import { PropertyRouers } from "./app/module/property/property.route";
+import { RoomRoutes } from "./app/module/room/room.route";
 
 const app: Application = express();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/auth', AuthRoutes)
 app.use('/api/v1/users', UserRoutes)
 app.use('/api/v1/owner', OwnerRoutes)
 app.use('/api/v1/properties', PropertyRouers)
+app.use('/api/v1/rooms', RoomRoutes)
 
 // For Testing
 app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
