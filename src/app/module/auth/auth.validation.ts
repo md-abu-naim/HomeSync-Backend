@@ -23,8 +23,8 @@ const registerUserValidationSchema = z.object({
         .regex(/[a-z]/, { message: "Add a lowercase letter" })
         .regex(/[0-9]/, { message: "Add a number" }),
 
-    role: z.enum([Role.OWNER, Role.ADMIN], {
-        message: "Role must be either OWNER or ADMIN",
+    role: z.enum([Role.OWNER, Role.TENANT], {
+        message: "Role must be either OWNER or TENANT",
     }).optional(),
 
     tenant: z

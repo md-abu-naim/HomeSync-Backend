@@ -110,8 +110,35 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 
 	const userPayload: IRegisterUser = JSON.parse(redisUserData)
 
-	const profile = userPayload.role === Role.TENANT
-		? {
+	// const profile = userPayload.role === Role.TENANT
+	// 	? {
+	// 		tenant: {
+	// 			create: {
+	// 				phone: userPayload.tenant?.phone || "",
+	// 				occupation: userPayload.tenant?.occupation || "",
+	// 				bio: userPayload.tenant?.bio || "",
+	// 			},
+	// 		},
+	// 	}
+	// 	: {
+	// 		owner: {
+	// 			create: {
+	// 				phone: userPayload.owner?.phone || "",
+	// 				address: userPayload.owner?.address || "",
+	// 			},
+	// 		},
+	// 	};
+
+	const profile = userPayload.role === Role.OWNER ?
+		{
+			owner: {
+				create: {
+					phone: userPayload.owner?.phone || "",
+					address: userPayload.owner?.address || "",
+				},
+			},
+		} :
+		{
 			tenant: {
 				create: {
 					phone: userPayload.tenant?.phone || "",
@@ -120,18 +147,10 @@ const verifyUserEmail = async (payload: IVerifyUserEmail) => {
 				},
 			},
 		}
-		: {
-			owner: {
-				create: {
-					phone: userPayload.owner?.phone || "",
-					address: userPayload.owner?.address || "",
-				},
-			},
-		};
 
-	const include = userPayload.role === "TENANT"
-		? { tenant: true }
-		: { owner: true };
+	const include = userPayload.role === "OWNER"
+		? { owner: true }
+		: { tenant: true };
 
 	const createdUser = await prisma.user.create({
 		data: {
