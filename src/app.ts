@@ -10,6 +10,7 @@ import { OwnerRoutes } from "./app/module/owner/owner.route";
 import { PropertyRouers } from "./app/module/property/property.route";
 import { RoomRoutes } from "./app/module/room/room.route";
 import { RoommateRouters } from "./app/module/roommate/roommate.route";
+import { RentalRouters } from "./app/module/rental/rental.route";
 
 const app: Application = express();
 
@@ -41,6 +42,7 @@ app.use('/api/v1/owner', OwnerRoutes)
 app.use('/api/v1/properties', PropertyRouers)
 app.use('/api/v1/rooms', RoomRoutes)
 app.use('/api/v1/roommates', RoommateRouters)
+app.use('/api/v1/rentals', RentalRouters)
 
 // For Testing
 app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
