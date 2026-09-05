@@ -72,7 +72,7 @@ const getMyPreference = async (userId: string) => {
     return preference;
 }
 
-const updatePreference = async (userId: string,  payload: IUpdatePreferencePayload) => {
+const updatePreference = async (userId: string, payload: IUpdatePreferencePayload) => {
     const tenant = await prisma.tenant.findUnique({
         where: {
             userId,
@@ -107,9 +107,85 @@ const updatePreference = async (userId: string,  payload: IUpdatePreferencePaylo
     });
 
     return updatedPreference;
+}
+
+const findMatches = async (userId: string) => {
+    const tenant = await prisma.tenant.findUnique({
+        where: {
+            userId,
+            isDeleted: false
+        },
+    });
+
+    if (!tenant) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Tenant Profile Not Found"
+        );
+    }
+
+    const preference = await prisma.roommate.findUnique({
+        where: {
+            tenantId: tenant.id,
+            isDeleted: false
+        },
+    });
+
+    if (!preference) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Please create your roommate preference first"
+        );
+    }
+
+    const matches = await prisma.roommate.findMany({
+        where: {
+            tenantId: {
+                not: tenant.id,
+            },
+            gender: preference.gender,
+            smokingAllowed: preference.smokingAllowed,
+            petsAllowed: preference.petsAllowed,
+        },
+        include: {
+            tenant: true,
+        },
+    })
+
+    return matches;
+};
+
+const getTenantProfile = async (tenantId: string) => {
+    const tenant = await prisma.tenant.findUnique({
+        where: {
+            id: tenantId,
+            isDeleted: false
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                    imageUrl: true,
+                    imagePublicId: true,
+                    isEmailVerified: true
+                },
+            },
+            roommate: true,
+        },
+    });
+
+    if (!tenant) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Tenant Not Found"
+        )
+    }
+
+    return tenant;
 };
 
 export const RoommateServices = {
     createPreference, getMyPreference,
-    updatePreference
+    updatePreference, findMatches, getTenantProfile
 }

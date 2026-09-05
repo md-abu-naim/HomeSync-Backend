@@ -17,6 +17,8 @@ router.patch(
     "/preferences/update", auth(Role.TENANT),
     validationRequest(updatePreferenceValidationSchema),
     RoommateController.updatePreference
-);
+)
+router.get("/matches", auth(Role.TENANT), RoommateController.findMatches)
+router.get("/:id", auth(Role.TENANT), RoommateController.getTenantProfile)
 
 export const RoommateRouters = router

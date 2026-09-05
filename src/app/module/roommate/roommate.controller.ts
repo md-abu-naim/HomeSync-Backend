@@ -43,7 +43,33 @@ const updatePreference = catchAsync(async (req: Request, res: Response, next: Ne
     });
 })
 
+const findMatches = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+
+    const result = await RoommateServices.findMatches(userId as string)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Roommate Matches Retrieved Successfully",
+        data: result,
+    });
+})
+
+const getTenantProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const tenantId = req.params.id;
+
+    const result = await RoommateServices.getTenantProfile(tenantId as string)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Tenant Profile Retrieved Successfully",
+        data: result,
+    });
+})
+
 export const RoommateController = {
     createPreference, getMyPreference,
-    updatePreference
+    updatePreference, findMatches, getTenantProfile
 }
