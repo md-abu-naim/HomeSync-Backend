@@ -17,6 +17,20 @@ const createApplication = catchAsync(async (req: Request, res: Response, next: N
     });
 })
 
+const getMyApplications = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+
+    const result = await RentalServices.getMyApplications(userId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My Applications Retrieved Successfully",
+        data: result,
+    });
+})
+
+
 const getApplicationById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.userId;
     const applicationId = req.params.id;
@@ -45,7 +59,37 @@ const cancelApplication = catchAsync(async (req: Request, res: Response, next: N
     });
 })
 
+const getPropertyApplications = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+    const propertyId = req.params.id;
+
+    const result = await RentalServices.getPropertyApplications(userId as string, propertyId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Property Applications Retrieved Successfully",
+        data: result,
+    });
+})
+
+const updateApplicationStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+    const applicationId = req.params.id;
+
+    const result = await RentalServices.updateApplicationStatus(userId as string, applicationId as string, req.body.status)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Application Status Updated Successfully",
+        data: result,
+    });
+})
+
+
 export const RentalController = {
-    createApplication, getApplicationById,
-    cancelApplication
+    createApplication, getMyApplications,
+    getApplicationById, cancelApplication,
+    getPropertyApplications, updateApplicationStatus
 }
