@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
-import { ICreatePreferencePayload } from "./roommate.interface";
+import { ICreatePreferencePayload, IUpdatePreferencePayload } from "./roommate.interface";
 import httpStatus from "http-status";
 
 const createPreference = async (userId: string, payload: ICreatePreferencePayload) => {
@@ -44,6 +44,72 @@ const createPreference = async (userId: string, payload: ICreatePreferencePayloa
     return preference;
 };
 
+const getMyPreference = async (userId: string) => {
+    const tenant = await prisma.tenant.findUnique({
+        where: {
+            userId,
+        },
+    });
+
+    if (!tenant) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Tenant Profile Not Found"
+        );
+    }
+
+    const preference = await prisma.roommate.findUnique({
+        where: {
+            tenantId: tenant.id,
+        }
+    });
+
+    if (!preference) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Roommate Preference Not Found"
+        );
+    }
+
+    return preference;
+}
+
+const updatePreference = async (userId: string,  payload: IUpdatePreferencePayload) => {
+    const tenant = await prisma.tenant.findUnique({
+        where: {
+            userId,
+        },
+    });
+
+    if (!tenant) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Tenant Profile Not Found"
+        );
+    }
+
+    const existingPreference = await prisma.roommate.findUnique({
+        where: {
+            tenantId: tenant.id,
+        },
+    });
+
+    if (!existingPreference) {
+        throw new AppError(
+            httpStatus.NOT_FOUND, "Roommate Preference Not Found"
+        );
+    }
+
+    const updatedPreference = await prisma.roommate.update({
+        where: {
+            tenantId: tenant.id,
+        },
+        data: {
+            ...payload,
+        },
+    });
+
+    return updatedPreference;
+};
+
 export const RoommateServices = {
-    createPreference
+    createPreference, getMyPreference,
+    updatePreference
 }

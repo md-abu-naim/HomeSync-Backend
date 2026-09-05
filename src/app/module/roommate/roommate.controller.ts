@@ -17,6 +17,33 @@ const createPreference = catchAsync(async (req: Request, res: Response, next: Ne
     });
 })
 
+const getMyPreference = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+
+    const result = await RoommateServices.getMyPreference(userId as string)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My Roommate Preference Retrieved Successfully",
+        data: result,
+    });
+})
+
+const updatePreference = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.userId;
+
+    const result = await RoommateServices.updatePreference(userId as string, req.body)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Roommate Preference Updated Successfully",
+        data: result,
+    });
+})
+
 export const RoommateController = {
-    createPreference
+    createPreference, getMyPreference,
+    updatePreference
 }

@@ -8,3 +8,12 @@ export interface ICreatePreferencePayload {
     smokingAllowed?: boolean;
     petsAllowed?: boolean;
 }
+
+export interface IUpdatePreferencePayload {
+    preferredGender?: Gender;
+    minBudget?: number;
+    maxBudget?: number;
+    preferredLocation?: string;
+    smokingAllowed?: boolean;
+    petsAllowed?: boolean;
+}
