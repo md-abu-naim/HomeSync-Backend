@@ -11,6 +11,8 @@ import { PropertyRouers } from "./app/module/property/property.route";
 import { RoomRoutes } from "./app/module/room/room.route";
 import { RoommateRouters } from "./app/module/roommate/roommate.route";
 import { RentalRouters } from "./app/module/rental/rental.route";
+import { PaymentRoutes } from "./app/module/payment/payment.route";
+import { AdminRouters } from "./app/module/admin/admin.route";
 
 const app: Application = express();
 
@@ -21,14 +23,13 @@ app.use(
     }),
 );
 
-// Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cookieParser());
 
-// Basic route
+// Welecome route
 app.get("/", async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
         success: true,
@@ -43,6 +44,8 @@ app.use('/api/v1/properties', PropertyRouers)
 app.use('/api/v1/rooms', RoomRoutes)
 app.use('/api/v1/roommates', RoommateRouters)
 app.use('/api/v1/rentals', RentalRouters)
+app.use('/api/v1/payments', PaymentRoutes)
+app.use('/api/v1/admin', AdminRouters)
 
 // For Testing
 app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
