@@ -126,7 +126,6 @@ const findMatches = async (userId: string) => {
     const preference = await prisma.roommate.findUnique({
         where: {
             tenantId: tenant.id,
-            isDeleted: false
         },
     });
 

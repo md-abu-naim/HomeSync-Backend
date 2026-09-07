@@ -53,7 +53,6 @@ const createPayment = async (payload: IPaymentPayload, user: RequestUser) => {
             );
         }
 
-
         const bkashIdToken = await getBkashIdToken();
 
 

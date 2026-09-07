@@ -7,16 +7,24 @@ export interface RequestUser {
 	role: Role;
 }
 
+export interface IUpdateTenantPayload {
+	phone?: string
+	occupation?: string
+	bio?: string
+	preferredLocation?: string
+	maxBudget?: number
+	minBudget?: number
+}
+
+export interface IUpdateOwnerPayload {
+	phone?: string
+	address?: string
+}
+
 export interface IUpdateUserPayload {
 	name?: string,
 	imageUrl?: string,
 	imagePublicId?: string,
-	tenant: {
-		phone?: string,
-		occupation?: string,
-		bio?: string,
-		preferredLocation?: string,
-		maxBudget?: number,
-		minBudget?: number
-	}
+	tenant?: IUpdateTenantPayload
+	owner?: IUpdateOwnerPayload
 }

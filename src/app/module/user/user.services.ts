@@ -9,7 +9,8 @@ const getMe = async (user: RequestUser) => {
 			id: user.userId,
 		},
 		include: {
-			tenant: true,
+			tenant: user.role === "TENANT",
+			owner: user.role === "OWNER"
 		},
 		omit: {
 			password: true,
@@ -23,19 +24,20 @@ const getMe = async (user: RequestUser) => {
 	return isUserExists;
 };
 
-const updateMyProfile = async(user:RequestUser, payload: IUpdateUserPayload) => {
-	const {name, tenant: tenantData} = payload
+const updateMyProfile = async (user: RequestUser, payload: IUpdateUserPayload) => {
+	const { name, tenant: tenantData, owner: ownerData } = payload
+
 	const isUserExists = await prisma.user.findUnique({
 		where: {
 			id: user.userId
 		}
-	})  
+	})
 
-	if(!isUserExists){
+	if (!isUserExists) {
 		throw new AppError(httpStatus.NOT_FOUND, 'User not Found')
 	}
 
-	if(isUserExists.status === 'BLOCKED' || isUserExists.isDeleted) {
+	if (isUserExists.status === 'BLOCKED' || isUserExists.isDeleted) {
 		throw new Error('user is already deleted')
 	}
 
@@ -45,7 +47,7 @@ const updateMyProfile = async(user:RequestUser, payload: IUpdateUserPayload) => 
 		},
 		data: {
 			name,
-			tenant: {
+			tenant: user.role === "TENANT" ? {
 				update: {
 					phone: tenantData?.phone,
 					occupation: tenantData?.occupation,
@@ -54,17 +56,24 @@ const updateMyProfile = async(user:RequestUser, payload: IUpdateUserPayload) => 
 					maxBudget: tenantData?.maxBudget,
 					minBudget: tenantData?.minBudget
 				}
-			}
+			} : undefined,
+			owner: user.role === "OWNER" ? {
+				update: {
+					phone: ownerData?.phone,
+					address: ownerData?.address
+				}
+			} : undefined
 		},
 		include: {
-			tenant: true
+			tenant: user.role === "TENANT",
+			owner: user.role === "OWNER"
 		}
 	})
 
 	return updatedUser
 }
 
-const getUserById = async(userId: string) => {
+const getUserById = async (userId: string) => {
 	const isUserExists = await prisma.user.findUnique({
 		where: {
 			id: userId
@@ -72,13 +81,13 @@ const getUserById = async(userId: string) => {
 		omit: {
 			password: true
 		}
-	})  
+	})
 
-	if(!isUserExists){
+	if (!isUserExists) {
 		throw new AppError(httpStatus.NOT_FOUND, 'User not Found')
 	}
 
-	if(isUserExists.status === 'BLOCKED' || isUserExists.isDeleted) {
+	if (isUserExists.status === 'BLOCKED' || isUserExists.isDeleted) {
 		throw new Error('user is already deleted')
 	}
 
@@ -86,5 +95,5 @@ const getUserById = async(userId: string) => {
 }
 
 export const UserServices = {
-    getMe, updateMyProfile, getUserById
+	getMe, updateMyProfile, getUserById
 }

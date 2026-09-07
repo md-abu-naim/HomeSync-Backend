@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type NextFunction, type Application, type Request, type Response } from "express";
 import httpStatus from "http-status";
+import helmet from "helmet";
 import { notFound } from "./app/middleware/notFound";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { AuthRoutes } from "./app/module/auth/auth.route";
@@ -16,13 +17,13 @@ import { AdminRouters } from "./app/module/admin/admin.route";
 
 const app: Application = express();
 
+app.use(helmet());
 app.use(
     cors({
         // origin: config.frontend_url,
         credentials: true,
     }),
 );
-
 app.use(express.urlencoded({ extended: true }));
 
 // Middleware to parse JSON bodies
@@ -33,7 +34,7 @@ app.use(cookieParser());
 app.get("/", async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
         success: true,
-        message: "Welcome to NexusField System Backend",
+        message: "Welcome to HomeSync System Backend",
     });
 });
 

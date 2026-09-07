@@ -16,8 +16,6 @@ export const seedTesterAdmin = async () => {
             return
         }
 
-
-
         const name = config.tester_admin_name
         const email = config.tester_admin_email
         const password = config.tester_admin_password
@@ -79,7 +77,13 @@ export const seedTesterOwner = async () => {
                 email,
                 password: hashedPassword,
                 role: Role.OWNER,
-                isEmailVerified: true
+                isEmailVerified: true,
+                owner: {
+                    create: {
+                        phone: "1025555",
+                        address: "Dhaka",
+                    }
+                }
             }
         })
 
@@ -123,7 +127,17 @@ export const seedTesterTenant = async () => {
                 email,
                 password: hashedPassword,
                 role: Role.TENANT,
-                isEmailVerified: true
+                isEmailVerified: true,
+                tenant: {
+                    create: {
+                        phone: "1025555",
+                        occupation: "Something",
+                        bio: "I am a Tenant",
+                        maxBudget: 10000,
+                        minBudget: 500,
+                        preferredLocation: "Noakhali"
+                    }
+                }
             }
         })
 
